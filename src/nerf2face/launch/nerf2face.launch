@@ -1,0 +1,6 @@
+<launch>
+  <remap from="/face_tracker_node/image_compressed" to="/raspicam_node/image/compressed" />
+
+  <include file="$(find raspicam_node)/launch/camerav2_nerf2face.launch" />
+  <include file="$(find perception)/launch/face_tracker.launch" />
+</launch>

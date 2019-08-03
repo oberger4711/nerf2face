@@ -1,0 +1,3 @@
+<launch>
+  <node pkg="perception" name="face_tracker_node" type="face_tracker_node" output="screen" />
+</launch>
