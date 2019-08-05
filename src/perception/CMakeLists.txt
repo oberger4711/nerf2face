@@ -14,7 +14,8 @@ find_package(catkin REQUIRED COMPONENTS
 )
 
 ## System dependencies are found with CMake's conventions
-# find_package(Boost REQUIRED COMPONENTS system)
+#find_package(Boost REQUIRED COMPONENTS system)
+find_package(OpenCV REQUIRED)
 
 
 ## Uncomment this if the package has a setup.py. This macro ensures
@@ -150,6 +151,7 @@ add_dependencies(face_tracker_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_
 ## Specify libraries to link a library or executable target against
 target_link_libraries(face_tracker_node
   ${catkin_LIBRARIES}
+  ${OpenCV_LIBS}
 )
 
 #############

@@ -1,8 +1,11 @@
 #include <ros/ros.h>
 #include <sensor_msgs/CompressedImage.h>
 
+#include <opencv2/opencv.hpp>
+
 void handleImageCompressed(const sensor_msgs::CompressedImage::ConstPtr& msg) {
     ROS_INFO("Received image.");
+    // TODO: Convert to cv mat and pass to impl.
 }
 
 int main(int argc, char **argv) {
