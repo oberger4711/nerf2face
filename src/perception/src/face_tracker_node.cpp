@@ -17,7 +17,6 @@ void FaceTrackerNode::handleImage(const sensor_msgs::ImageConstPtr& img_msg) {
     // Send detection.
     perception_msgs::FaceDetectionStamped det_stamped_msg;
     det_stamped_msg.header.stamp = cv_img->header.stamp;
-
     auto& det_msg = det_stamped_msg.face_detection;
     // Normalize aabb.
     if (rect_or_empty) {
@@ -39,6 +38,5 @@ int main(int argc, char **argv) {
     ros::NodeHandle nh("~");
     FaceTrackerNode face_tracker_node(nh);
     ros::Rate loop_rate(50);
-    ROS_INFO("Launched.");
     ros::spin();
 }

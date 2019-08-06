@@ -1,3 +1,5 @@
+#pragma once
+
 // Boost
 #include <boost/optional.hpp>
 // OpenCV
