@@ -3,23 +3,31 @@
 FaceTrackerNode::FaceTrackerNode(ros::NodeHandle& nh) :
     nh(nh),
     image_transport(nh) {
-    reset_service = nh.advertiseService("reset", &FaceTrackerNode::handleReset, this);
-    image_subscriber = image_transport.subscribe("image", 1, &FaceTrackerNode::handleImage, this);
-    face_detection_publisher = nh.advertise<perception_msgs::FaceDetectionStamped>("face_detection", 20);
+    reconfigure_server.setCallback(std::bind(&FaceTrackerNode::handle_reconfigure, this, std::placeholders::_1, std::placeholders::_2));
+    reset_service = nh.advertiseService("reset", &FaceTrackerNode::handle_reset, this);
+    image_sub = image_transport.subscribe("image", 1, &FaceTrackerNode::handle_image, this);
+    face_detection_pub = nh.advertise<perception_msgs::FaceDetectionStamped>("face_detection", 20);
 }
 
-bool FaceTrackerNode::handleReset(std_srvs::Empty::Request&, std_srvs::Empty::Response&) {
+void FaceTrackerNode::handle_reconfigure(perception::FaceTrackerConfig&, uint32_t) {
+    // Update config and reset.
+    this->config = config;
+    ROS_INFO("Reconfigured.");
+    reset();
+}
+
+bool FaceTrackerNode::handle_reset(std_srvs::Empty::Request&, std_srvs::Empty::Response&) {
     reset();
     return true;
 }
 
 void FaceTrackerNode::reset() {
-    ROS_INFO("Resetting.");
     // TODO: Set face tracker parameters.
     face_tracker.reset();
+    ROS_INFO("Reset.");
 }
 
-void FaceTrackerNode::handleImage(const sensor_msgs::ImageConstPtr& img_msg) {
+void FaceTrackerNode::handle_image(const sensor_msgs::ImageConstPtr& img_msg) {
     ROS_INFO("Received image.");
     // To CV mat.
     cv_bridge::CvImagePtr cv_img;
@@ -42,7 +50,7 @@ void FaceTrackerNode::handleImage(const sensor_msgs::ImageConstPtr& img_msg) {
     else {
         det_msg.detected = false;
     }
-    face_detection_publisher.publish(det_stamped_msg);
+    face_detection_pub.publish(det_stamped_msg);
 }
 
 int main(int argc, char **argv) {

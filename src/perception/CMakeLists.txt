@@ -15,6 +15,7 @@ find_package(catkin REQUIRED COMPONENTS
   perception_msgs
   cv_bridge
   image_transport
+  dynamic_reconfigure
 )
 
 ## System dependencies are found with CMake's conventions
@@ -93,10 +94,9 @@ find_package(OpenCV REQUIRED)
 ##     and list every .cfg file to be processed
 
 ## Generate dynamic reconfigure parameters in the 'cfg' folder
-# generate_dynamic_reconfigure_options(
-#   cfg/DynReconf1.cfg
-#   cfg/DynReconf2.cfg
-# )
+generate_dynamic_reconfigure_options(
+  cfg/face_tracker.cfg
+)
 
 ###################################
 ## catkin specific configuration ##

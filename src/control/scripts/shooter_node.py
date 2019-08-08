@@ -11,14 +11,14 @@ NODE_NAME = "shooter_node"
 class ShooterNode:
     def __init__(self):
         self.reconfigure_server = dynamic_reconfigure.server.Server(ShooterConfig, self.handle_reconfigure)
-        self.reset_server = rospy.Service("{}/reset".format(NODE_NAME), std_srvs.srv.Empty, self.handle_reset)
+        self.reset_service = rospy.Service("{}/reset".format(NODE_NAME), std_srvs.srv.Empty, self.handle_reset)
         self.face_detection_sub = rospy.Subscriber("{}/face_detection".format(NODE_NAME), FaceDetectionStamped, self.handle_face_detection)
         self.config = None
 
     def handle_reconfigure(self, config, level):
-        rospy.loginfo("Reconfigured.")
         # Update config and reset.
         self.config = config
+        rospy.loginfo("Reconfigured.")
         self.reset()
         return config
 
@@ -27,8 +27,8 @@ class ShooterNode:
         return std_srvs.srv.EmptyResponse()
 
     def reset(self):
-        rospy.loginfo("Resetting.")
         # TODO: Reset state etc.
+        rospy.loginfo("Reset.")
 
     def handle_face_detection(self, det_msg):
         rospy.loginfo(rospy.get_caller_id() + ": Received detection.")
