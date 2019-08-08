@@ -1,7 +1,11 @@
 #include "face_tracker.h"
 
-FaceTracker::FaceTracker() :
-  current_state(FaceTrackerState::DETECT) {
+FaceTracker::FaceTracker() {
+    reset();
+}
+
+void FaceTracker::reset() {
+    current_state = FaceTrackerState::DETECT;
 }
 
 boost::optional<cv::Rect> FaceTracker::findFace(const cv::Mat& img) {

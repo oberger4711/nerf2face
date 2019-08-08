@@ -3,8 +3,20 @@
 FaceTrackerNode::FaceTrackerNode(ros::NodeHandle& nh) :
     nh(nh),
     image_transport(nh) {
+    reset_service = nh.advertiseService("reset", &FaceTrackerNode::handleReset, this);
     image_subscriber = image_transport.subscribe("image", 1, &FaceTrackerNode::handleImage, this);
     face_detection_publisher = nh.advertise<perception_msgs::FaceDetectionStamped>("face_detection", 20);
+}
+
+bool FaceTrackerNode::handleReset(std_srvs::Empty::Request&, std_srvs::Empty::Response&) {
+    reset();
+    return true;
+}
+
+void FaceTrackerNode::reset() {
+    ROS_INFO("Resetting.");
+    // TODO: Set face tracker parameters.
+    face_tracker.reset();
 }
 
 void FaceTrackerNode::handleImage(const sensor_msgs::ImageConstPtr& img_msg) {

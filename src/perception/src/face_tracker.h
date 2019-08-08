@@ -9,6 +9,7 @@ class FaceTracker {
 public:
     FaceTracker();
     boost::optional<cv::Rect> findFace(const cv::Mat& img);
+    void reset();
 
 private:
     enum class FaceTrackerState {
