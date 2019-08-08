@@ -8,9 +8,10 @@ project(control)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
-  perception_msgs
   rospy
   std_msgs
+  perception_msgs
+  std_srvs
   dynamic_reconfigure
 )
 
