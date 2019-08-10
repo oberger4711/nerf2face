@@ -31,8 +31,9 @@ class ShooterNode:
         rospy.loginfo("Reset.")
 
     def handle_face_detection(self, det_msg):
-        rospy.loginfo(rospy.get_caller_id() + ": Received detection.")
+        #rospy.loginfo(rospy.get_caller_id() + ": Received detection.")
         # TODO: Pass to state.
+        pass
 
 
 def main():

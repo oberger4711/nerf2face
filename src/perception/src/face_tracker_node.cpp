@@ -3,7 +3,7 @@
 FaceTrackerNode::FaceTrackerNode(ros::NodeHandle& nh) :
     nh(nh),
     it(nh),
-    face_tracker(ros::package::getPath("perception") + "/resources/haarcascade_frontalface_default.xml") {
+    face_tracker(ros::package::getPath("perception") + "/resources/haarcascade_frontalface_default.xml", FaceTrackerImpl::MOSSE) {
     reconfigure_server.setCallback(std::bind(&FaceTrackerNode::handle_reconfigure, this, std::placeholders::_1, std::placeholders::_2));
     reset_service = nh.advertiseService("reset", &FaceTrackerNode::handle_reset, this);
     image_sub = nh.subscribe("image", 1, &FaceTrackerNode::handle_image, this);
@@ -31,16 +31,12 @@ void FaceTrackerNode::reset() {
 }
 
 void FaceTrackerNode::handle_image(const sensor_msgs::ImageConstPtr& img_msg) {
-    ROS_INFO("Received image.");
     // To CV mat.
     cv_bridge::CvImagePtr cv_img;
-    ROS_INFO("before bridge");
     cv_img = cv_bridge::toCvCopy(img_msg, img_msg->encoding);
-    ROS_INFO("before find face");
     // Detect / track.
     const auto rect_or_empty = face_tracker.findFace(cv_img->image);
     //boost::optional<cv::Rect> rect_or_empty;
-    ROS_INFO("after find face");
     // Send detection.
     perception_msgs::FaceDetectionStamped det_stamped_msg;
     det_stamped_msg.header.stamp = cv_img->header.stamp;

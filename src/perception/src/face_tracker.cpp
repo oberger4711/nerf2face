@@ -1,9 +1,27 @@
 #include "face_tracker.h"
 
-FaceTracker::FaceTracker(const std::string& cascade_file_path) {
+FaceTracker::FaceTracker(const std::string& cascade_file_path, const FaceTrackerImpl tracker_impl) :
+    tracker_impl(tracker_impl),
+    current_state(FaceTrackerState::DETECT) {
+    tracker = make_tracker();
     ROS_INFO_STREAM(cascade_file_path);
-    face_detector.load(cascade_file_path);
+    detector.load(cascade_file_path);
     reset();
+}
+
+cv::Ptr<cv::Tracker> FaceTracker::make_tracker() {
+    switch (tracker_impl) {
+        case FaceTrackerImpl::CSRT:
+            return cv::TrackerCSRT::create();
+        case FaceTrackerImpl::KCF:
+            return cv::TrackerKCF::create();
+        case FaceTrackerImpl::MOSSE:
+            return cv::TrackerMOSSE::create();
+            break;
+        default:
+            ROS_WARN_STREAM("Requested tracker implementation " << static_cast<unsigned int>(tracker_impl) << " is not supported.");
+            return cv::TrackerMOSSE::create();
+    }
 }
 
 void FaceTracker::reset() {
@@ -11,14 +29,50 @@ void FaceTracker::reset() {
 }
 
 boost::optional<cv::Rect> FaceTracker::findFace(const cv::Mat& img) {
-    ROS_INFO("Finding face.");
     // To grayscale.
     cv::Mat img_gray;
     cv::cvtColor(img, img_gray, CV_BGR2GRAY);
-    ROS_INFO_STREAM("Img gray: " << img_gray.cols << " x " <<  img_gray.rows);
+    if (current_state == FaceTrackerState::TRACK) {
+        auto tracked_face = trackFace(img_gray);
+        if (tracked_face) {
+            return tracked_face;
+        }
+        else {
+            // Fall back to detection.
+            current_state = FaceTrackerState::DETECT;
+            ROS_INFO("Switch to DETECT.");
+        }
+    }
+    if (current_state == FaceTrackerState::DETECT) {
+        auto detected_face = detectFace(img_gray);
+        if (detected_face) {
+            // Start tracking.
+            tracker = make_tracker();
+            tracker->init(img_gray, static_cast<cv::Rect2d>(detected_face.get()));
+            current_state = FaceTrackerState::TRACK;
+            ROS_INFO("Switch to TRACK.");
+        }
+        return detected_face;
+    }
+    return boost::optional<cv::Rect>();
+}
+
+boost::optional<cv::Rect> FaceTracker::trackFace(const cv::Mat& img_gray) {
+    cv::Rect2d tracked_face_double;
+    const bool tracking_succeeded = tracker->update(img_gray, tracked_face_double);
+    cv::Rect tracked_face = static_cast<cv::Rect>(tracked_face_double);
+    if (tracking_succeeded) {
+        return boost::optional<cv::Rect>(tracked_face);
+    }
+    else {
+        return boost::optional<cv::Rect>();
+    }
+}
+
+boost::optional<cv::Rect> FaceTracker::detectFace(const cv::Mat& img_gray) {
     std::vector<cv::Rect> face_detections;
-    face_detector.detectMultiScale(img_gray, face_detections, 1.1, 2, 0 | CV_HAAR_SCALE_IMAGE, cv::Size(30, 30));
-    const cv::Point img_center(img.cols / 2, img.rows / 2);
+    detector.detectMultiScale(img_gray, face_detections, 1.1, 2, 0 | CV_HAAR_SCALE_IMAGE, cv::Size(30, 30));
+    const cv::Point img_center(img_gray.cols / 2, img_gray.rows / 2);
     boost::optional<cv::Rect> final_face_detection;
     float final_distance_2 = std::numeric_limits<float>::infinity();
     for (const auto& face_detection : face_detections) {
@@ -36,12 +90,4 @@ boost::optional<cv::Rect> FaceTracker::findFace(const cv::Mat& img) {
         }
     }
     return final_face_detection;
-}
-
-boost::optional<cv::Rect> FaceTracker::trackFace(const cv::Mat& img) {
-    return boost::optional<cv::Rect>();
-}
-
-boost::optional<cv::Rect> FaceTracker::detectFace(const cv::Mat& img) {
-    return boost::optional<cv::Rect>();
 }
