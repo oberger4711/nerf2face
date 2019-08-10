@@ -4,6 +4,7 @@
 #include <functional>
 // ROS
 #include <ros/ros.h>
+#include <ros/package.h>
 #include <dynamic_reconfigure/server.h>
 #include <perception/FaceTrackerConfig.h>
 #include <std_srvs/Empty.h>
@@ -31,11 +32,12 @@ private:
     void handle_image(const sensor_msgs::ImageConstPtr&);
 
     ros::NodeHandle& nh;
+    image_transport::ImageTransport it;
     dynamic_reconfigure::Server<perception::FaceTrackerConfig> reconfigure_server;
     ros::ServiceServer reset_service;
-    image_transport::ImageTransport image_transport;
-    image_transport::Subscriber image_sub;
+    ros::Subscriber image_sub;
     ros::Publisher face_detection_pub;
+    image_transport::Publisher image_debug_pub;
     FaceTracker face_tracker;
     perception::FaceTrackerConfig config;
 };

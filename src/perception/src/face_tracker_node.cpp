@@ -2,11 +2,14 @@
 
 FaceTrackerNode::FaceTrackerNode(ros::NodeHandle& nh) :
     nh(nh),
-    image_transport(nh) {
+    it(nh),
+    face_tracker(ros::package::getPath("perception") + "/resources/haarcascade_frontalface_default.xml") {
     reconfigure_server.setCallback(std::bind(&FaceTrackerNode::handle_reconfigure, this, std::placeholders::_1, std::placeholders::_2));
     reset_service = nh.advertiseService("reset", &FaceTrackerNode::handle_reset, this);
-    image_sub = image_transport.subscribe("image", 1, &FaceTrackerNode::handle_image, this);
+    image_sub = nh.subscribe("image", 1, &FaceTrackerNode::handle_image, this);
+    //image_sub = it.subscribe("image", 1, &FaceTrackerNode::handle_image, this, image_transport::TransportHints("compressed"));
     face_detection_pub = nh.advertise<perception_msgs::FaceDetectionStamped>("face_detection", 20);
+    image_debug_pub = it.advertise("image_debug", 1);
 }
 
 void FaceTrackerNode::handle_reconfigure(perception::FaceTrackerConfig&, uint32_t) {
@@ -31,9 +34,13 @@ void FaceTrackerNode::handle_image(const sensor_msgs::ImageConstPtr& img_msg) {
     ROS_INFO("Received image.");
     // To CV mat.
     cv_bridge::CvImagePtr cv_img;
-    cv_img = cv_bridge::toCvCopy(img_msg, sensor_msgs::image_encodings::BGR8);
+    ROS_INFO("before bridge");
+    cv_img = cv_bridge::toCvCopy(img_msg, img_msg->encoding);
+    ROS_INFO("before find face");
     // Detect / track.
     const auto rect_or_empty = face_tracker.findFace(cv_img->image);
+    //boost::optional<cv::Rect> rect_or_empty;
+    ROS_INFO("after find face");
     // Send detection.
     perception_msgs::FaceDetectionStamped det_stamped_msg;
     det_stamped_msg.header.stamp = cv_img->header.stamp;
@@ -49,6 +56,17 @@ void FaceTrackerNode::handle_image(const sensor_msgs::ImageConstPtr& img_msg) {
     }
     else {
         det_msg.detected = false;
+    }
+    // Publish debug image (if anyone is interested in).
+    if (true || image_debug_pub.getNumSubscribers() > 0) {
+        auto& img = cv_img->image;
+        if (rect_or_empty) {
+            cv::rectangle(img, rect_or_empty.get(), cv::Scalar(255, 0, 0));
+        }
+        std_msgs::Header header;
+        header.stamp = cv_img->header.stamp;
+        auto debug_msg = cv_bridge::CvImage(header, "bgr8", img).toImageMsg();
+        image_debug_pub.publish(debug_msg);
     }
     face_detection_pub.publish(det_stamped_msg);
 }

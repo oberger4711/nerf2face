@@ -1,7 +1,8 @@
 <launch>
-  <remap from="/face_tracker_node/image" to="/raspicam_node/image" />
+  <!--<remap from="/face_tracker_node/image" to="/raspicam_node/image" />-->
   <remap from="/shooter_node/face_detection" to="/face_tracker_node/face_detection" />
 
+  <node type="republish" pkg="image_transport" name="republish" args="compressed in:=/raspicam_node/image raw out:=/face_tracker_node/image" />
   <include file="$(find raspicam_node)/launch/camerav2_nerf2face.launch" />
   <include file="$(find perception)/launch/face_tracker.launch" />
   <include file="$(find control)/launch/shooter.launch" />
