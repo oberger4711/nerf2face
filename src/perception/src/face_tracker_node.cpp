@@ -44,8 +44,8 @@ void FaceTrackerNode::handle_image(const sensor_msgs::ImageConstPtr& img_msg) {
     // Normalize aabb.
     if (rect_or_empty) {
         const auto& rect = rect_or_empty.get();
-        det_msg.x_center = (rect.tl().x + rect.width / 2) / cv_img->image.cols;
-        det_msg.y_center = (rect.tl().y + rect.height / 2) / cv_img->image.rows;
+        det_msg.x_center = (rect.tl().x + rect.width / 2.f) / cv_img->image.cols;
+        det_msg.y_center = (rect.tl().y + rect.height / 2.f) / cv_img->image.rows;
         det_msg.width = rect.width / cv_img->image.cols;
         det_msg.height = rect.height / cv_img->image.rows;
         det_msg.detected = true;
