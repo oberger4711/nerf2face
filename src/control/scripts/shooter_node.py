@@ -49,7 +49,6 @@ class ShooterNode:
         else:
             self.aimer.reset()
 
-
 def main():
     try:
         rospy.init_node(NODE_NAME, anonymous=False)
