@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+import threading
+import time
 # ROS
 import rospy
 import dynamic_reconfigure.server
@@ -10,16 +12,16 @@ from perception_msgs.msg import FaceDetectionStamped
 import std_srvs.srv
 # Other libs
 import numpy as np
-from adafruit_servokit import ServoKit
 
+from actuator import Actuator
 from aimer import Aimer
 
 NODE_NAME = "shooter_node"
 
 class ShooterNode:
     def __init__(self):
-        self.servo_kit = ServoKit(channels=16)
-        self.aimer = Aimer(self.servo_kit)
+        self.actuator = Actuator()
+        self.aimer = Aimer(self.actuator)
         self.reconfigure_server = dynamic_reconfigure.server.Server(ShooterConfig, self.handle_reconfigure)
         self.reset_service = rospy.Service("{}/reset".format(NODE_NAME), std_srvs.srv.Empty, self.handle_reset)
         self.face_detection_sub = rospy.Subscriber("{}/face_detection".format(NODE_NAME), FaceDetectionStamped, self.handle_face_detection)
