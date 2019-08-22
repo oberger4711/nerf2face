@@ -42,7 +42,7 @@ class Actuator:
     
     def get_actual_pan_voltage(self):
         # TODO
-        pass
+        return 0.0
     
     def get_actual_pan(self):
         pan_voltage = self.get_actual_pan_voltage()
@@ -51,7 +51,7 @@ class Actuator:
     
     def get_actual_tilt_voltage(self):
         # TODO
-        pass
+        return 0.0
 
     def get_actual_tilt(self):
         tilt_voltage = self.get_actual_tilt_voltage()

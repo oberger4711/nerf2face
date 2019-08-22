@@ -1,0 +1,16 @@
+pan_angle_start: 60
+pan_angle_stop: 120
+pan_voltage_samples:
+- 0.0
+- 0.0
+- 0.0
+- 0.0
+- 0.0
+tilt_angle_start: 80
+tilt_angle_stop: 140
+tilt_voltage_samples:
+- 0.0
+- 0.0
+- 0.0
+- 0.0
+- 0.0
