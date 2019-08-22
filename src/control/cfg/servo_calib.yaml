@@ -1,14 +1,14 @@
-pan_angle_start: 60
-pan_angle_stop: 120
-pan_voltage_samples:
+/shooter_node/pan_angle_start: 60
+/shooter_node/pan_angle_stop: 120
+/shooter_node/pan_voltage_samples:
 - 0.0
 - 0.0
 - 0.0
 - 0.0
 - 0.0
-tilt_angle_start: 80
-tilt_angle_stop: 140
-tilt_voltage_samples:
+/shooter_node/tilt_angle_start: 80
+/shooter_node/tilt_angle_stop: 140
+/shooter_node/tilt_voltage_samples:
 - 0.0
 - 0.0
 - 0.0

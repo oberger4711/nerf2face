@@ -45,12 +45,12 @@ class CalibServoNode:
 
     def dumpParameters(self):
         params = {
-                "pan_angle_start" : Actuator.PAN_MIN_ANGLE,
-                "pan_angle_stop" : Actuator.PAN_MAX_ANGLE,
-                "pan_voltage_samples" : self.pan_voltage_samples,
-                "tilt_angle_start" : Actuator.TILT_MIN_ANGLE,
-                "tilt_angle_stop" : Actuator.TILT_MAX_ANGLE,
-                "tilt_voltage_samples" : self.tilt_voltage_samples
+                "/shooter_node/pan_angle_start" : Actuator.PAN_MIN_ANGLE,
+                "/shooter_node/pan_angle_stop" : Actuator.PAN_MAX_ANGLE,
+                "/shooter_node/pan_voltage_samples" : self.pan_voltage_samples,
+                "/shooter_node/tilt_angle_start" : Actuator.TILT_MIN_ANGLE,
+                "/shooter_node/tilt_angle_stop" : Actuator.TILT_MAX_ANGLE,
+                "/shooter_node/tilt_voltage_samples" : self.tilt_voltage_samples
             }
         params_yaml = yaml.dump(params, Dumper=Dumper)
         rospy.loginfo("Dumping parameters to {}.".format(OUT_YAML_FILE_PATH))

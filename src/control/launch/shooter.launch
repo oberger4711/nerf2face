@@ -1,3 +1,4 @@
 <launch>
+  <rosparam command="load" file="$(find control)/cfg/servo_calib.yaml" />
   <node pkg="control" name="shooter_node" type="shooter_node.py" output="screen" />
 </launch>

@@ -5,6 +5,17 @@ import rospy
 import numpy as np
 from adafruit_servokit import ServoKit
 
+class ServoCalibration:
+    def __init__(self, min_angle, max_angle, voltage_samples):
+        self.min_angle = min_angle
+        self.max_angle = max_angle
+        self.voltage_samples = voltage_samples
+
+    def lookupAngle(self, voltage):
+        # Use linear interpolation between samples.
+        # TODO
+        return 0
+
 class Actuator:
     """ Thread-safe abstraction of the robot actuators.
     """
@@ -20,6 +31,10 @@ class Actuator:
         self.tilt_servo = self.servo_kit.servo[1]
         self.trigger_servo = self.servo_kit.servo[2]
         self.set_default_orientation()
+
+    def set_parameters(self, pan_calib, tilt_calib):
+        self.pan_calib = pan_calib
+        self.tilt_calib = tilt_calib
 
     def set_default_orientation(self):
         self.set_target_pan(90)
@@ -46,8 +61,10 @@ class Actuator:
     
     def get_actual_pan(self):
         pan_voltage = self.get_actual_pan_voltage()
-        # TODO: Translate using lookup table.
-        pass
+        if self.pan_calib is not None:
+            return self.pan_calib.lookupAngle(pan_voltage)
+        else:
+            return None
     
     def get_actual_tilt_voltage(self):
         # TODO
@@ -55,5 +72,7 @@ class Actuator:
 
     def get_actual_tilt(self):
         tilt_voltage = self.get_actual_tilt_voltage()
-        # TODO: Translate using lookup table.
-        pass
+        if self.tilt_calib is not None:
+            return self.tilt_calib.lookupAngle(tilt_voltage)
+        else:
+            return None

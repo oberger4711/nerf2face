@@ -13,7 +13,7 @@ import std_srvs.srv
 # Other libs
 import numpy as np
 
-from actuator import Actuator
+from actuator import Actuator, ServoCalibration
 from aimer import Aimer
 
 NODE_NAME = "shooter_node"
@@ -28,8 +28,19 @@ class ShooterNode:
         self.aim_error_pub = rospy.Publisher("{}/aim_error".format(NODE_NAME), PointStamped, queue_size=100)
 
     def handle_reconfigure(self, config, level):
-        # Update config and reset.
+        # Update parameters and reset.
         self.config = config
+        pan_calib = ServoCalibration(
+            rospy.get_param("{}/pan_angle_start".format(NODE_NAME)),
+            rospy.get_param("{}/pan_angle_stop".format(NODE_NAME)),
+            rospy.get_param("{}/pan_voltage_samples".format(NODE_NAME))
+        )
+        tilt_calib = ServoCalibration(
+            rospy.get_param("{}/tilt_angle_start".format(NODE_NAME)),
+            rospy.get_param("{}/tilt_angle_stop".format(NODE_NAME)),
+            rospy.get_param("{}/tilt_voltage_samples".format(NODE_NAME))
+        )
+        self.actuator.set_parameters(pan_calib, tilt_calib)
         self.aimer.set_parameters(config.aim_pan_p, config.aim_pan_d, config.aim_tilt_p, config.aim_tilt_d)
         rospy.loginfo("Reconfigured.")
         return config
