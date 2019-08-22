@@ -22,11 +22,16 @@ class CalibServoNode:
         self.tilt_voltage_samples = []
         for i in range(NUM_SAMPLES):
             fraction = i / (NUM_SAMPLES - 1)
-            rospy.loginfo("{:.2%}".format(fraction))
-            self.actuator.set_pan(Actuator.PAN_MIN_ANGLE + (Actuator.PAN_MAX_ANGLE - Actuator.PAN_MIN_ANGLE) * fraction)
-            self.actuator.set_tilt(Actuator.TILT_MIN_ANGLE + (Actuator.TILT_MAX_ANGLE - Actuator.TILT_MIN_ANGLE) * fraction)
+            self.actuator.set_target_pan(Actuator.PAN_MIN_ANGLE + (Actuator.PAN_MAX_ANGLE - Actuator.PAN_MIN_ANGLE) * fraction)
+            self.actuator.set_target_tilt(Actuator.TILT_MIN_ANGLE + (Actuator.TILT_MAX_ANGLE - Actuator.TILT_MIN_ANGLE) * fraction)
+            if rospy.is_shutdown(): break # Emergency break
             time.sleep(1) # Let servos control and stop shaking.
-            # TODO: Read potis and add to lists.
+            pan_voltage = self.actuator.get_actual_pan_voltage()
+            tilt_voltage = self.actuator.get_actual_tilt_voltage()
+            self.pan_voltage_samples += [pan_voltage]
+            self.tilt_voltage_samples += [tilt_voltage]
+            rospy.loginfo("{:.2%}: pan: {}, tilt: {}".format(fraction, pan_voltage, tilt_voltage))
+            if rospy.is_shutdown(): break # Emergency break
 
     def dumpParameters(self):
         # TODO: Save samples as yaml file in cfg dir.
