@@ -35,7 +35,7 @@ void FaceTrackerNode::handle_image(const sensor_msgs::ImageConstPtr& img_msg) {
     cv_bridge::CvImagePtr cv_img;
     cv_img = cv_bridge::toCvCopy(img_msg, img_msg->encoding);
     auto& img_raw = cv_img->image;
-    const auto rot_matrix = cv::getRotationMatrix2D(cv::Point2f(img_raw.cols / 2.f, img_raw.rows / 2.f), 90, 1);
+    const auto rot_matrix = cv::getRotationMatrix2D(cv::Point2f(img_raw.cols / 2.f, img_raw.rows / 2.f), 180, 1);
     cv::Mat img;
     cv::warpAffine(img_raw, img, rot_matrix, cv::Size(img_raw.cols, img_raw.rows));
     // Detect / track.
@@ -49,8 +49,8 @@ void FaceTrackerNode::handle_image(const sensor_msgs::ImageConstPtr& img_msg) {
     // Normalize aabb.
     if (rect_or_empty) {
         const auto& rect = rect_or_empty.get();
-        det_msg.x_center = (rect.tl().x + rect.width / 2.f) / img.cols;
-        det_msg.y_center = (rect.tl().y + rect.height / 2.f) / img.rows;
+        det_msg.x_center = ((rect.tl().x + rect.br().x) / 2.f) / img.cols;
+        det_msg.y_center = ((rect.tl().y + rect.br().y) / 2.f) / img.rows;
         det_msg.width = rect.width / img.cols;
         det_msg.height = rect.height / img.rows;
         det_msg.detected = true;

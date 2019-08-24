@@ -26,6 +26,7 @@ class ShooterNode:
         self.reset_service = rospy.Service("{}/reset".format(NODE_NAME), std_srvs.srv.Empty, self.handle_reset)
         self.face_detection_sub = rospy.Subscriber("{}/face_detection".format(NODE_NAME), FaceDetectionStamped, self.handle_face_detection)
         self.aim_error_pub = rospy.Publisher("{}/aim_error".format(NODE_NAME), PointStamped, queue_size=100)
+        self.shot = False
 
     def handle_reconfigure(self, config, level):
         # Update parameters and reset.
@@ -51,14 +52,25 @@ class ShooterNode:
 
     def reset(self):
         # TODO: Reset state etc.
+        self.shot = False
         rospy.loginfo("Reset.")
 
     def handle_face_detection(self, det_msg):
+        if self.shot: return
         if det_msg.face_detection.detected:
             # Mirror coordinates for pan.
             target = np.array([1 - det_msg.face_detection.x_center, det_msg.face_detection.y_center])
             error = self.aimer.aim(target)
             self.aim_error_pub.publish(PointStamped(Header(0, det_msg.header.stamp, ""), Point(error[0], error[1], 0)))
+
+            #rospy.loginfo(error)
+            if not self.shot and np.amax(np.absolute(error)) < 0.10:
+                rospy.loginfo("Shooting.")
+                self.actuator.set_target_pan(None)
+                self.actuator.set_target_tilt(None)
+                time.sleep(0.05)
+                self.actuator.pull_trigger()
+                self.shot = True
         else:
             self.aimer.reset()
 

@@ -34,6 +34,11 @@ class Aimer:
         self.previous_error = error
         #rospy.loginfo("Velocity: {}, {}".format(velocity[0], velocity[1]))
         # Apply
-        self.actuator.set_target_pan(self.actuator.target_pan + velocity[0])
-        self.actuator.set_target_tilt(self.actuator.target_tilt + velocity[1])
+        # Old: used target values to control.
+        #self.actuator.set_target_pan(self.actuator.target_pan + velocity[0])
+        #self.actuator.set_target_tilt(self.actuator.target_tilt + velocity[1])
+        # New: Use actual values to control.
+        self.actuator.set_target_pan(self.actuator.get_actual_pan() + velocity[0])
+        self.actuator.set_target_tilt(self.actuator.get_actual_tilt() + velocity[1])
+        # TODO: Use actual values from image timestamps to control.
         return error
