@@ -71,7 +71,7 @@ boost::optional<cv::Rect> FaceTracker::trackFace(const cv::Mat& img_gray) {
 
 boost::optional<cv::Rect> FaceTracker::detectFace(const cv::Mat& img_gray) {
     std::vector<cv::Rect> face_detections;
-    detector.detectMultiScale(img_gray, face_detections, 1.1, 2, 0 | CV_HAAR_SCALE_IMAGE, cv::Size(30, 30));
+    detector.detectMultiScale(img_gray, face_detections, 1.1, 4, 0 | CV_HAAR_SCALE_IMAGE, cv::Size(30, 30));
     const cv::Point img_center(img_gray.cols / 2, img_gray.rows / 2);
     boost::optional<cv::Rect> final_face_detection;
     float final_distance_2 = std::numeric_limits<float>::infinity();
