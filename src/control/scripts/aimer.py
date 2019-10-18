@@ -53,7 +53,7 @@ class Aimer:
         # New: Use actual values to control.
         actual_pan = self.actuator.get_actual_pan()
         actual_tilt = self.actuator.get_actual_tilt()
-        control_pan = actual_pan - velocity[0] # Minus because rotation is other way around.
+        control_pan = actual_pan + velocity[0]
         control_tilt = actual_tilt + velocity[1]
         if self.step < self.acc_steps:
             # Smooth acceleration a bit (hacky but better for servos).

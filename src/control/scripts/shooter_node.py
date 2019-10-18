@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import math
 import threading
 import time
 # ROS
@@ -18,6 +19,16 @@ from actuator import Actuator, ServoCalibration
 from aimer import Aimer
 
 NODE_NAME = "shooter_node"
+
+def aiming_at_face(face_det):
+    crosshairs = np.array([0.5, 0.5])
+    # Simplify face to circle.
+    face_center = np.array([face_det.x_center, face_det.y_center])
+    face_radius = min(face_det.width, face_det.height)
+    diff = face_center - crosshairs
+    distance_2 = diff[0] * diff[0] + diff[1] * diff[1]
+    rospy.loginfo("radius: {}, distance: {}".format(math.sqrt(face_radius), distance_2))
+    return distance_2 < face_radius * face_radius
 
 class ShooterNode:
     def __init__(self):
@@ -75,12 +86,12 @@ class ShooterNode:
         #if self.shot: return
         if det_msg.face_detection.detected:
             # Mirror coordinates for pan.
-            target = np.array([1 - det_msg.face_detection.x_center, det_msg.face_detection.y_center])
+            target = np.array([det_msg.face_detection.x_center, det_msg.face_detection.y_center])
             error = self.aimer.aim(target, det_msg.header.stamp.to_time())
             self.aim_error_pub.publish(PointStamped(Header(0, det_msg.header.stamp, ""), Point(error[0], error[1], 0)))
 
             #rospy.loginfo(error)
-            if not self.shot and np.amax(np.absolute(error)) < 0.10:
+            if not self.shot and aiming_at_face(det_msg.face_detection):
                 rospy.loginfo("Shooting.")
                 self.actuator.set_target_pan(None)
                 self.actuator.set_target_tilt(None)
