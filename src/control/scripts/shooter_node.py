@@ -55,7 +55,7 @@ class ShooterNode:
             rospy.get_param("{}/tilt_voltage_samples".format(NODE_NAME))
         )
         self.actuator.set_parameters(pan_calib, tilt_calib)
-        self.aimer.set_parameters(config.aim_acc_steps, config.aim_pan_p, config.aim_pan_d, config.aim_tilt_p, config.aim_tilt_d)
+        self.aimer.set_parameters(config.aim_acc_steps, config.aim_pan_p, config.aim_pan_i, config.aim_pan_d, config.aim_tilt_p, config.aim_tilt_i, config.aim_tilt_d)
         rospy.loginfo("Reconfigured.")
         return config
 
