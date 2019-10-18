@@ -70,11 +70,13 @@ class ShooterNode:
         return control.srv.MoveResponse()
 
     def handle_face_detection(self, det_msg):
+        #age = rospy.Time.now() - det_msg.header.stamp
+        #rospy.loginfo("age: {} s ({} % of framerate)".format(age.to_sec(), age.to_sec() / (1 / 40)))
         #if self.shot: return
         if det_msg.face_detection.detected:
             # Mirror coordinates for pan.
             target = np.array([1 - det_msg.face_detection.x_center, det_msg.face_detection.y_center])
-            error = self.aimer.aim(target)
+            error = self.aimer.aim(target, det_msg.header.stamp.to_time())
             self.aim_error_pub.publish(PointStamped(Header(0, det_msg.header.stamp, ""), Point(error[0], error[1], 0)))
 
             #rospy.loginfo(error)

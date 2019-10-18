@@ -25,7 +25,7 @@ class ServoCalibration:
 class Actuator:
     """ Thread-safe abstraction of the robot actuators.
     """
-    PAN_MIN_ANGLE = 0
+    PAN_MIN_ANGLE = 32
     PAN_MAX_ANGLE = 130
     TILT_MIN_ANGLE = 20
     TILT_MAX_ANGLE = 110
