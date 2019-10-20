@@ -51,8 +51,8 @@ void FaceTrackerNode::handle_image(const sensor_msgs::ImageConstPtr& img_msg) {
         const auto& rect = rect_or_empty.get();
         det_msg.x_center = ((rect.tl().x + rect.br().x) / 2.f) / img.cols;
         det_msg.y_center = ((rect.tl().y + rect.br().y) / 2.f) / img.rows;
-        det_msg.width = rect.width / img.cols;
-        det_msg.height = rect.height / img.rows;
+        det_msg.width = static_cast<float>(rect.width) / img.cols;
+        det_msg.height = static_cast<float>(rect.height) / img.rows;
         det_msg.detected = true;
     }
     else {
