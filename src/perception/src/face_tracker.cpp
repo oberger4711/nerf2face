@@ -1,12 +1,23 @@
 #include "face_tracker.h"
 
-FaceTracker::FaceTracker(const std::string& cascade_file_path, const FaceTrackerImpl tracker_impl) :
+FaceTracker::FaceTracker(const FaceDetectorImpl detector_impl, const FaceTrackerImpl tracker_impl) :
     tracker_impl(tracker_impl),
     current_state(FaceTrackerState::DETECT) {
+    detector = make_detector(detector_impl);
     tracker = make_tracker();
-    ROS_INFO_STREAM(cascade_file_path);
-    detector.load(cascade_file_path);
     reset();
+}
+
+std::unique_ptr<FaceDetector> FaceTracker::make_detector(const FaceDetectorImpl detector_impl) {
+    switch (detector_impl) {
+        case FaceDetectorImpl::HAAR:
+            return std::unique_ptr<FaceDetector>(new HaarFaceDetector());
+        case FaceDetectorImpl::HOG_SVM:
+            return std::unique_ptr<FaceDetector>(new HogSvmFaceDetector());
+        default:
+            ROS_WARN_STREAM("Requested detector implementation " << static_cast<unsigned int>(detector_impl) << " is not supported.");
+            return std::unique_ptr<FaceDetector>(new HaarFaceDetector());
+    }
 }
 
 cv::Ptr<cv::Tracker> FaceTracker::make_tracker() {
@@ -71,7 +82,10 @@ boost::optional<cv::Rect> FaceTracker::trackFace(const cv::Mat& img_gray) {
 
 boost::optional<cv::Rect> FaceTracker::detectFace(const cv::Mat& img_gray) {
     std::vector<cv::Rect> face_detections;
-    detector.detectMultiScale(img_gray, face_detections, 1.1, 4, 0 | CV_HAAR_SCALE_IMAGE, cv::Size(30, 30));
+    //auto start_time = std::chrono::high_resolution_clock::now();
+    detector->detect(img_gray, face_detections);
+    //auto end_time = std::chrono::high_resolution_clock::now();
+    //ROS_INFO_STREAM("detect() took " << (end_time - start_time) / std::chrono::milliseconds(1) << " ms.\n");
     const cv::Point img_center(img_gray.cols / 2, img_gray.rows / 2);
     boost::optional<cv::Rect> final_face_detection;
     float final_distance_2 = std::numeric_limits<float>::infinity();

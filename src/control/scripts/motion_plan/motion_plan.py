@@ -47,10 +47,10 @@ def plan(s_start, s_end, v_start, v_max, a):
     duration_const_non_peak = (s_delta - s_acc - s_break) / v_highest
     duration_const = max(0, duration_const_non_peak)
     duration_total = duration_acc + duration_const + duration_break
-    print("duration_acc = {}".format(duration_acc))
-    print("duration_const = {}".format(duration_const))
-    print("duration_break = {}".format(duration_break))
-    print("duration_total = {}".format(duration_total))
+    #print("duration_acc = {}".format(duration_acc))
+    #print("duration_const = {}".format(duration_const))
+    #print("duration_break = {}".format(duration_break))
+    #print("duration_total = {}".format(duration_total))
     t_const = duration_acc
     t_break = t_const + duration_const
     def s(t):

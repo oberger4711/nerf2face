@@ -4,7 +4,6 @@
 #include <functional>
 // ROS
 #include <ros/ros.h>
-#include <ros/package.h>
 #include <dynamic_reconfigure/server.h>
 #include <perception/FaceTrackerConfig.h>
 #include <std_srvs/Empty.h>

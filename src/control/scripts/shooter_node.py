@@ -32,16 +32,19 @@ def aiming_at_face(face_det):
 
 class ShooterNode:
     def __init__(self):
+        self.parked = True
         self.actuator = Actuator()
         self.aimer = Aimer(self.actuator)
         self.reconfigure_server = dynamic_reconfigure.server.Server(ShooterConfig, self.handle_reconfigure)
         self.reset_service = rospy.Service("{}/reset".format(NODE_NAME), std_srvs.srv.Empty, self.handle_reset)
+        self.park_service = rospy.Service("{}/park".format(NODE_NAME), std_srvs.srv.Empty, self.handle_park)
         self.move_service = rospy.Service("{}/move".format(NODE_NAME), control.srv.Move, self.handle_move)
         self.face_detection_sub = rospy.Subscriber("{}/face_detection".format(NODE_NAME), FaceDetectionStamped, self.handle_face_detection)
         self.aim_error_pub = rospy.Publisher("{}/aim_error".format(NODE_NAME), PointStamped, queue_size=100)
         self.shot = False
 
     def handle_reconfigure(self, config, level):
+        rospy.loginfo("Reconfiguring.")
         # Update parameters and reset.
         self.config = config
         pan_calib = ServoCalibration(
@@ -56,7 +59,6 @@ class ShooterNode:
         )
         self.actuator.set_parameters(pan_calib, tilt_calib)
         self.aimer.set_parameters(config.aim_acc_steps, config.aim_pan_p, config.aim_pan_i, config.aim_pan_d, config.aim_tilt_p, config.aim_tilt_i, config.aim_tilt_d)
-        rospy.loginfo("Reconfigured.")
         return config
 
     def handle_reset(self, req):
@@ -64,10 +66,24 @@ class ShooterNode:
         return std_srvs.srv.EmptyResponse()
 
     def reset(self):
-        # TODO: Reset state etc.
+        rospy.loginfo("Resetting.")
+        self.aimer.reset()
         self.shot = False
+        self.parked = False
+
+    def handle_park(self, req):
+        self.park()
+        return std_srvs.srv.EmptyResponse()
+
+    def park(self):
+        rospy.loginfo("Parking.")
+        self.shot = False
+        self.parked = True
         self.actuator.set_default_orientation()
-        rospy.loginfo("Reset.")
+
+    def handle_move(self, req):
+        self.move(req.pan, req.tilt)
+        return control.srv.MoveResponse()
 
     def move(self, pan, tilt):
         rospy.loginfo("Moving to pan = {}, tilt = {}".format(pan, tilt))
@@ -76,11 +92,8 @@ class ShooterNode:
         self.actuator.set_target_pan(None)
         self.actuator.set_target_tilt(None)
 
-    def handle_move(self, req):
-        self.move(req.pan, req.tilt)
-        return control.srv.MoveResponse()
-
     def handle_face_detection(self, det_msg):
+        if self.parked: return # Ignore message when parked.
         #age = rospy.Time.now() - det_msg.header.stamp
         #rospy.loginfo("age: {} s ({} % of framerate)".format(age.to_sec(), age.to_sec() / (1 / 40)))
         #if self.shot: return

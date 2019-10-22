@@ -3,7 +3,7 @@
 FaceTrackerNode::FaceTrackerNode(ros::NodeHandle& nh) :
     nh(nh),
     it(nh),
-    face_tracker(ros::package::getPath("perception") + "/resources/haarcascade_frontalface_default.xml", FaceTrackerImpl::KCF) {
+    face_tracker(FaceDetectorImpl::HAAR, FaceTrackerImpl::KCF) {
     reconfigure_server.setCallback(std::bind(&FaceTrackerNode::handle_reconfigure, this, std::placeholders::_1, std::placeholders::_2));
     reset_service = nh.advertiseService("reset", &FaceTrackerNode::handle_reset, this);
     image_sub = nh.subscribe("image", 1, &FaceTrackerNode::handle_image, this);
