@@ -8,6 +8,8 @@ project(nerf2face)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
+  rospy
+  std_srvs
   perception
   raspicam_node
 )
@@ -102,10 +104,8 @@ find_package(catkin REQUIRED COMPONENTS
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-#  INCLUDE_DIRS include
-#  LIBRARIES nerf2face
-#  CATKIN_DEPENDS perception raspicam_node
-#  DEPENDS system_lib
+  LIBRARIES nerf2face
+  CATKIN_DEPENDS rospy
 )
 
 ###########

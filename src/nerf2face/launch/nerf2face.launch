@@ -6,4 +6,5 @@
   <include file="$(find raspicam_node)/launch/camerav2_nerf2face.launch" />
   <include file="$(find perception)/launch/face_tracker.launch" />
   <include file="$(find control)/launch/shooter.launch" />
+  <node pkg="nerf2face" name="nerf2face_node" type="nerf2face_node.py" output="screen" />
 </launch>
