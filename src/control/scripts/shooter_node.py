@@ -24,7 +24,7 @@ def aiming_at_face(face_det):
     crosshairs = np.array([0.5, 0.5])
     # Simplify face to circle.
     face_center = np.array([face_det.x_center, face_det.y_center])
-    face_radius = min(face_det.width, face_det.height)
+    face_radius = min(min(face_det.width, face_det.height), 0.1)
     diff = face_center - crosshairs
     distance_2 = diff[0] * diff[0] + diff[1] * diff[1]
     rospy.loginfo("radius: {}, distance: {}".format(math.sqrt(face_radius), distance_2))
