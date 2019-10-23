@@ -48,17 +48,14 @@ class Actuator:
         self.tilt_calib = None
 
     def set_parameters(self, pan_calib, tilt_calib):
-        initial_configuration = self.pan_calib is None or self.tilt_calib is None
         self.pan_calib = pan_calib
         self.tilt_calib = tilt_calib
-        if initial_configuration:
-            self.set_default_orientation()
 
     def set_default_orientation(self):
-        rospy.loginfo("Moving to initial orientation.")
+        rospy.loginfo("Moving to default orientation.")
         self.trigger_servo.angle = Actuator.TRIGGER_READY_ANGLE
         self.move_to(60, 70)
-        rospy.loginfo("Set initial orientation.")
+        rospy.loginfo("Moved to default orientation.")
 
     def set_target_pan(self, new_pan):
         if new_pan is not None:
@@ -108,7 +105,7 @@ class Actuator:
         pan, duration_pan = plan(start_pan, dest_pan, 0, Actuator.V_MOVE_MAX, Actuator.A_MOVE_MAX)
         tilt, duration_tilt = plan(start_tilt, dest_tilt, 0, Actuator.V_MOVE_MAX, Actuator.A_MOVE_MAX)
         duration_max = max(duration_pan, duration_tilt)
-        rospy.loginfo("Move-to duration: {} s".format(duration_max))
+        rospy.loginfo("Planned move-to duration: {} s".format(duration_max))
 
         # Move synchronously at specified rate.
         rate = rospy.Rate(Actuator.MOVE_FREQUENCY)
