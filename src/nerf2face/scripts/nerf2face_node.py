@@ -47,6 +47,11 @@ class Nerf2FaceNode:
         rospy.loginfo("Switching to SHOOTING state.")
         self.state = "SHOOTING"
         self.parked_led.off()
+        time.sleep(1)
+        self.shooting_led.on()
+        time.sleep(1)
+        self.shooting_led.off()
+        time.sleep(1)
         self.shooting_led.on()
         reset_shooter()
         reset_face_tracker()

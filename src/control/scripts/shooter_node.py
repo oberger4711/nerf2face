@@ -20,14 +20,18 @@ from aimer import Aimer
 
 NODE_NAME = "shooter_node"
 
+def face_det_target(face_det):
+    # Aim a bit on the side so that shot hits the face.
+    return np.array([face_det.x_center + face_det.width * 0.6, face_det.y_center - face_det.height * 0.8])
+
 def aiming_at_face(face_det):
     crosshairs = np.array([0.5, 0.5])
     # Simplify face to circle.
-    face_center = np.array([face_det.x_center, face_det.y_center])
-    face_radius = min(min(face_det.width, face_det.height), 0.1)
+    face_center = face_det_target(face_det)
+    face_radius = min(min(face_det.width, face_det.height) / 3, 0.1)
     diff = face_center - crosshairs
     distance_2 = diff[0] * diff[0] + diff[1] * diff[1]
-    rospy.loginfo("radius: {}, distance: {}".format(math.sqrt(face_radius), distance_2))
+    #rospy.loginfo("radius: {}, distance: {}".format(face_radius, distance_2))
     return distance_2 < face_radius * face_radius
 
 class ShooterNode:
@@ -99,7 +103,7 @@ class ShooterNode:
         #if self.shot: return
         if det_msg.face_detection.detected:
             # Mirror coordinates for pan.
-            target = np.array([det_msg.face_detection.x_center, det_msg.face_detection.y_center])
+            target = face_det_target(det_msg.face_detection)
             error = self.aimer.aim(target, det_msg.header.stamp.to_time())
             self.aim_error_pub.publish(PointStamped(Header(0, det_msg.header.stamp, ""), Point(error[0], error[1], 0)))
 
