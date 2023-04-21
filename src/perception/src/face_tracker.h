@@ -32,7 +32,7 @@ enum class FaceTrackerImpl {
 class FaceTracker {
 public:
     FaceTracker(const FaceDetectorImpl detector_impl, const FaceTrackerImpl tracker_impl);
-    boost::optional<cv::Rect> findFace(const cv::Mat& img);
+    boost::optional<cv::Rect> findFace(const cv::Mat& img, const double timestamp);
     void reset();
 
 private:
@@ -48,6 +48,7 @@ private:
     
     FaceTrackerImpl tracker_impl;
     FaceTrackerState current_state;
+    double ts_last_detection;
     std::unique_ptr<FaceDetector> detector;
     cv::Ptr<cv::Tracker> tracker;
 };

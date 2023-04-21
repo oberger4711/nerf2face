@@ -39,7 +39,7 @@ void FaceTrackerNode::handle_image(const sensor_msgs::ImageConstPtr& img_msg) {
     cv::Mat img;
     cv::warpAffine(img_raw, img, rot_matrix, cv::Size(img_raw.cols, img_raw.rows));
     // Detect / track.
-    const auto rect_or_empty = face_tracker.findFace(img);
+    const auto rect_or_empty = face_tracker.findFace(img, cv_img->header.stamp.toSec());
 
     //boost::optional<cv::Rect> rect_or_empty;
     // Send detection.

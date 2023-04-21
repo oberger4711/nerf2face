@@ -2,7 +2,8 @@
 
 FaceTracker::FaceTracker(const FaceDetectorImpl detector_impl, const FaceTrackerImpl tracker_impl) :
     tracker_impl(tracker_impl),
-    current_state(FaceTrackerState::DETECT) {
+    current_state(FaceTrackerState::DETECT),
+    ts_last_detection(-1.0) {
     detector = make_detector(detector_impl);
     tracker = make_tracker();
     reset();
@@ -39,29 +40,56 @@ void FaceTracker::reset() {
     current_state = FaceTrackerState::DETECT;
 }
 
-boost::optional<cv::Rect> FaceTracker::findFace(const cv::Mat& img) {
+boost::optional<cv::Rect> FaceTracker::findFace(const cv::Mat& img, const double timestamp) {
     // To grayscale.
     cv::Mat img_gray;
     cv::cvtColor(img, img_gray, CV_BGR2GRAY);
     if (current_state == FaceTrackerState::TRACK) {
         auto tracked_face = trackFace(img_gray);
         if (tracked_face) {
-            return tracked_face;
+            if (timestamp - ts_last_detection < 1.0) {
+                return tracked_face;
+            }
+            else {
+                cv::Rect roi = *tracked_face;
+                roi.width = std::min(img.size().width, roi.width * 3);
+                roi.height = std::min(img.size().height, roi.height * 3);
+                roi.x = std::max(0, std::min(img.size().width - roi.width, roi.x - roi.width / 2));
+                roi.y = std::max(0, std::min(img.size().height - roi.height, roi.y - roi.height / 2));
+                cv::Mat roi_img_gray = img_gray(roi);
+                auto detected_face = detectFace(roi_img_gray);
+                if (detected_face) {
+                    ROS_INFO("TRACK : Redetected.");
+                    detected_face->x += roi.x;
+                    detected_face->y += roi.y;
+                    ts_last_detection = timestamp;
+                    // Resume tracking.
+                    current_state = FaceTrackerState::TRACK;
+                    tracker = make_tracker();
+                    tracker->init(img_gray, static_cast<cv::Rect2d>(detected_face.get()));
+                    return detected_face;
+                }
+                else {
+                    current_state = FaceTrackerState::DETECT;
+                    ROS_INFO("TRACK : Not redetected. -> DETECT");
+                }
+            }
         }
         else {
             // Fall back to detection.
             current_state = FaceTrackerState::DETECT;
-            ROS_INFO("Switch to DETECT.");
+            ROS_INFO("TRACK : Lost track. -> DETECT");
         }
     }
     if (current_state == FaceTrackerState::DETECT) {
         auto detected_face = detectFace(img_gray);
         if (detected_face) {
+            ts_last_detection = timestamp;
             // Start tracking.
             tracker = make_tracker();
             tracker->init(img_gray, static_cast<cv::Rect2d>(detected_face.get()));
             current_state = FaceTrackerState::TRACK;
-            ROS_INFO("Switch to TRACK.");
+            ROS_INFO("DETECT: Detected. -> TRACK");
         }
         return detected_face;
     }

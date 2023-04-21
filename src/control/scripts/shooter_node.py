@@ -22,17 +22,7 @@ NODE_NAME = "shooter_node"
 
 def face_det_target(face_det):
     # Aim a bit on the side so that shot hits the face.
-    return np.array([face_det.x_center + face_det.width * 0.6, face_det.y_center - face_det.height * 0.8])
-
-def aiming_at_face(face_det):
-    crosshairs = np.array([0.5, 0.5])
-    # Simplify face to circle.
-    face_center = face_det_target(face_det)
-    face_radius = min(min(face_det.width, face_det.height) / 3, 0.1)
-    diff = face_center - crosshairs
-    distance_2 = diff[0] * diff[0] + diff[1] * diff[1]
-    #rospy.loginfo("radius: {}, distance: {}".format(face_radius, distance_2))
-    return distance_2 < face_radius * face_radius
+    return np.array([face_det.x_center + face_det.width * 0.51, face_det.y_center - face_det.height * 0.8])
 
 class ShooterNode:
     def __init__(self):
@@ -96,6 +86,25 @@ class ShooterNode:
         self.actuator.set_target_pan(None)
         self.actuator.set_target_tilt(None)
 
+    def aiming_at_face(self, ts, face_det):
+        crosshairs = np.array([0.5, 0.5])
+        # Simplify face to circle.
+        face_center = face_det_target(face_det)
+        face_radius = min(min(face_det.width, face_det.height) / 2, 0.1)
+        diff = face_center - crosshairs
+        distance_2 = diff[0] * diff[0] + diff[1] * diff[1]
+        #rospy.loginfo("radius: {}, distance: {}".format(face_radius, distance_2))
+        ready_to_shoot = False
+        if (distance_2 < face_radius * face_radius):
+            if self.stamp_on_face_start > 0.0:
+                if ts - self.stamp_on_face_start > 0.3:
+                    ready_to_shoot = True
+            else:
+                self.stamp_on_face_start = ts
+        else:
+            self.stamp_on_face_start = -1.0
+        return ready_to_shoot
+
     def handle_face_detection(self, det_msg):
         if self.parked: return # Ignore message when parked.
         #age = rospy.Time.now() - det_msg.header.stamp
@@ -108,7 +117,7 @@ class ShooterNode:
             self.aim_error_pub.publish(PointStamped(Header(0, det_msg.header.stamp, ""), Point(error[0], error[1], 0)))
 
             #rospy.loginfo(error)
-            if not self.shot and aiming_at_face(det_msg.face_detection):
+            if not self.shot and self.aiming_at_face(det_msg.header.stamp.to_sec(), det_msg.face_detection):
                 rospy.loginfo("Shooting.")
                 self.actuator.set_target_pan(None)
                 self.actuator.set_target_tilt(None)
