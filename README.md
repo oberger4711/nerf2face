@@ -1,15 +1,59 @@
-## Install dlib on Raspberry Pi 4
-dlib face detections produces less false positives than the OpenCV detector.
-Unfortunately, dlib face detection runs very slowly on Raspberry Pi 4.
-One reason for this is that AVX instruction set is not supported and the available NEON instructions are not implemented in dlib.
-I hacked in NEON instructions (float32x4 vectors) for spatial filtering.
-Speedup is approximately 2: From 6 s to 3 s.
-This is still way too slow.
-Maybe more is possible with the NEON-VFPv4 instructions (float16x8) and running fewer detectors but for now I stick to the OpenCV face detector based on Haar cascades.
+# nerf2face
+Software for a Nerf gun robot that detects and shoots at the users face.
+Safety goggles are recommended.
 
-Enable NEON SIMD instructions like this.
+The software runs on Raspberry 4 and is based on ROS 1 Melodic.
+
+# Requirements
+HW Requirements:
+* Raspberry Pi 4
+* Raspberry Pi Camera V2.1
+* Google Coral TPU: For running fac
+* Servo / PWM Pi Hat from Adafruit: For controlling the servos
+* 16 bit 12C ADC: For servo voltage feedback
+* 2 HITec D485 HW Digital Servos: For aiming, hacked to read voltage
+* 1 MG90S Micro Servo: For pulling trigger
+
+SW Requirements:
+* Raspbian 10 (buster)
+* OpenCV 3.4.7 (guide below)
+* OpenCV contrib 3.4.7
+* ROS Melodic (guide below)
+* Python 2.7.16
+* Python deps (guide below)
+* Boost
+
+## Install OpenCV with Contrib
+Clone `opencv` and `opencv_contrib` alongside each other in a directory.
+Untested:
 ```
-pi@raspberrypi:~/dlib-19.18/build $ cmake -DUSE_NEON_INSTRUCTIONS=ON -DDLIB_NO_GUI_SUPPORT=ON ..
-pi@raspberrypi:~/dlib-19.18/build $ cmake --build . --config Release
-pi@raspberrypi:~/dlib-19.18/build $ sudo make install
+cd opencv
+mkdir build
+cd build
+cmake -D CMAKE_BUILD_TYPE=RELEASE     -D CMAKE_INSTALL_PREFIX=/usr/local     -D OPENCV_EXTRA_MODULES_PATH=../../opencv_contrib/modules  -DCPU_BASELINE=NEON,VFPV3 -D ENABLE_NEON=ON -D ENABLE_VFPV3=ON    -D BUILD_TESTS=OFF     -D INSTALL_PYTHON_EXAMPLES=OFF     -D BUILD_EXAMPLES=OFF -DPYTHON_DEFAULT_EXECUTABLE=`which python3` ..
+sudo make install
+```
+
+## Install ROS Melodic
+Untested:
+```
+mkdir ros_ws
+cd ros_ws
+../install_ros_melodic.sh
+```
+
+## Python deps
+```
+pip install -r requirements.txt
+```
+
+# Build
+```
+catkin_make
+source devel/setup.bash
+```
+
+# Run
+```
+roslaunch nerf2face nerf2face.launch
 ```
