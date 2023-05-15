@@ -8,7 +8,6 @@ constexpr int DOWN_SCALING_FACTOR = 2;
 
 CoralFaceDetector::CoralFaceDetector() :
     detector(ros::package::getPath("perception") + "/resources/ssd_mobilenet_v2_face_quant_postprocess_edgetpu.tflite", 0.7) {
-    //detector(ros::package::getPath("perception") + "/resources/efficientdet_lite0_320_ptq_edgetpu.tflite", 0.7) {
 }
 
 void CoralFaceDetector::detect(const cv::Mat& /*img_gray*/, const cv::Mat& img_rgb, std::vector<cv::Rect>& face_detections) {
