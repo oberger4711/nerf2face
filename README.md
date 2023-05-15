@@ -44,8 +44,15 @@ cd ros_ws
 
 ## Python deps
 ```
-pip install -r requirements.txt
+pip2 install -r requirements.txt
 ```
+
+## Coral
+1. Follow [this guide](https://coral.ai/docs/accelerator/get-started/) to install the coral libraries.
+2. Install bazel prebuilt [from here](https://github.com/koenvervloesem/bazel-on-arm/releases/tag/v4.2.2).
+2. Build & install `libedgetpu` using [this guide](https://coral.ai/docs/notes/build-coral#build-the-edge-tpu-runtime-libedgetpu). Install for Tensorflow version 1.15.0 (commit 590d6eef7e91a6a7392c8ffffb7b58f2e0c8bc6b).
+
+
 
 # Build
 ```

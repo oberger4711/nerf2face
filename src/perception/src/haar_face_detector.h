@@ -11,7 +11,7 @@
 class HaarFaceDetector : public FaceDetector {
 public:
     HaarFaceDetector();
-    void detect(const cv::Mat& img_gray, std::vector<cv::Rect>& face_detections) override;
+    void detect(const cv::Mat& img_gray, const cv::Mat& img_rgb, std::vector<cv::Rect>& face_detections) override;
 private:
     cv::CascadeClassifier detector;
 };

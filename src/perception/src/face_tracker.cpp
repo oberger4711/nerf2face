@@ -13,8 +13,8 @@ std::unique_ptr<FaceDetector> FaceTracker::make_detector(const FaceDetectorImpl 
     switch (detector_impl) {
         case FaceDetectorImpl::HAAR:
             return std::unique_ptr<FaceDetector>(new HaarFaceDetector());
-        case FaceDetectorImpl::HOG_SVM:
-            return std::unique_ptr<FaceDetector>(new HogSvmFaceDetector());
+        case FaceDetectorImpl::MOBILE_NET_V2:
+            return std::unique_ptr<FaceDetector>(new CoralFaceDetector());
         default:
             ROS_WARN_STREAM("Requested detector implementation " << static_cast<unsigned int>(detector_impl) << " is not supported.");
             return std::unique_ptr<FaceDetector>(new HaarFaceDetector());
@@ -28,6 +28,8 @@ cv::Ptr<cv::Tracker> FaceTracker::make_tracker() {
         case FaceTrackerImpl::KCF:
             return cv::TrackerKCF::create();
         case FaceTrackerImpl::MOSSE:
+            return cv::TrackerMOSSE::create();
+        case FaceTrackerImpl::NONE:
             return cv::TrackerMOSSE::create();
             break;
         default:
@@ -57,7 +59,7 @@ boost::optional<cv::Rect> FaceTracker::findFace(const cv::Mat& img, const double
                 roi.x = std::max(0, std::min(img.size().width - roi.width, roi.x - roi.width / 2));
                 roi.y = std::max(0, std::min(img.size().height - roi.height, roi.y - roi.height / 2));
                 cv::Mat roi_img_gray = img_gray(roi);
-                auto detected_face = detectFace(roi_img_gray);
+                auto detected_face = detectFace(roi_img_gray, img);
                 if (detected_face) {
                     ROS_INFO("TRACK : Redetected.");
                     detected_face->x += roi.x;
@@ -82,14 +84,16 @@ boost::optional<cv::Rect> FaceTracker::findFace(const cv::Mat& img, const double
         }
     }
     if (current_state == FaceTrackerState::DETECT) {
-        auto detected_face = detectFace(img_gray);
+        auto detected_face = detectFace(img_gray, img);
         if (detected_face) {
             ts_last_detection = timestamp;
-            // Start tracking.
-            tracker = make_tracker();
-            tracker->init(img_gray, static_cast<cv::Rect2d>(detected_face.get()));
-            current_state = FaceTrackerState::TRACK;
-            ROS_INFO("DETECT: Detected. -> TRACK");
+            if (tracker_impl != FaceTrackerImpl::NONE) {
+                // Start tracking.
+                tracker = make_tracker();
+                tracker->init(img_gray, static_cast<cv::Rect2d>(detected_face.get()));
+                current_state = FaceTrackerState::TRACK;
+                ROS_INFO("DETECT: Detected. -> TRACK");
+            }
         }
         return detected_face;
     }
@@ -108,10 +112,10 @@ boost::optional<cv::Rect> FaceTracker::trackFace(const cv::Mat& img_gray) {
     }
 }
 
-boost::optional<cv::Rect> FaceTracker::detectFace(const cv::Mat& img_gray) {
+boost::optional<cv::Rect> FaceTracker::detectFace(const cv::Mat& img_gray, const cv::Mat& img_rgb) {
     std::vector<cv::Rect> face_detections;
     //auto start_time = std::chrono::high_resolution_clock::now();
-    detector->detect(img_gray, face_detections);
+    detector->detect(img_gray, img_rgb, face_detections);
     //auto end_time = std::chrono::high_resolution_clock::now();
     //ROS_INFO_STREAM("detect() took " << (end_time - start_time) / std::chrono::milliseconds(1) << " ms.\n");
     const cv::Point img_center(img_gray.cols / 2, img_gray.rows / 2);

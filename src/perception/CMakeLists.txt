@@ -142,7 +142,7 @@ add_executable(face_tracker_node
   src/face_tracker_node.cpp
   src/face_tracker.cpp
   src/haar_face_detector.cpp
-  src/hog_svm_face_detector.cpp
+  src/coral_face_detector.cpp
 )
 
 ## Rename C++ executable without prefix
@@ -159,6 +159,7 @@ add_dependencies(face_tracker_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_
 target_link_libraries(face_tracker_node
   ${catkin_LIBRARIES}
   ${OpenCV_LIBS}
+  ${CMAKE_SOURCE_DIR}/perception/lib/libcoraldetector.so
 )
 
 #############
