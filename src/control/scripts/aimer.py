@@ -45,8 +45,7 @@ class Aimer:
         #actual_pan = self.actuator.target_pan
         #actual_tilt = self.actuator.target_tilt
         # New: Use actual values to control.
-        actual_pan = self.actuator.get_actual_pan()
-        actual_tilt = self.actuator.get_actual_tilt()
+        actual_pan, actual_tilt = self.actuator.get_actual_pan_and_tilt()
 
         # PD control
         actual = np.array([0.5, 0.5])

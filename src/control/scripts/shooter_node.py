@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 import math
-import threading
 import time
 # ROS
 import rospy
