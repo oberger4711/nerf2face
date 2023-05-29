@@ -41,7 +41,10 @@ class Actuator:
         self.pan_servo = self.servo_kit.servo[0]
         self.tilt_servo = self.servo_kit.servo[1]
         self.trigger_servo = self.servo_kit.servo[2]
-        self.ads = ADS.ADS1115(i2c)
+        # CONTINUOUS mode is not possible for multiple channels unfortunately.
+        # See https://learn.adafruit.com/adafruit-4-channel-adc-breakouts/python-circuitpython
+        # Possibly with two ADS1115, I could use continuous mode for both servo voltage reads.
+        self.ads = ADS.ADS1115(i2c, mode=ADS.Mode.SINGLE)
         self.pan_ai = AnalogIn(self.ads, ADS.P0)
         self.tilt_ai = AnalogIn(self.ads, ADS.P1)
         self.pan_calib = None
@@ -111,6 +114,7 @@ class Actuator:
         rate = rospy.Rate(Actuator.MOVE_FREQUENCY)
         t_start = time.time()
         t_now = time.time()
+
         while (t_now - t_start) <= duration_max:
             if rospy.is_shutdown(): break # Emergency break
             self.set_target_pan(pan(t_now - t_start))

@@ -42,8 +42,8 @@ class Aimer:
         else:
             time_step = None
         # Old: used target values to control.
-        #self.actuator.set_target_pan(self.actuator.target_pan + velocity[0])
-        #self.actuator.set_target_tilt(self.actuator.target_tilt + velocity[1])
+        #actual_pan = self.actuator.target_pan
+        #actual_tilt = self.actuator.target_tilt
         # New: Use actual values to control.
         actual_pan = self.actuator.get_actual_pan()
         actual_tilt = self.actuator.get_actual_tilt()
