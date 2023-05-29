@@ -19,13 +19,13 @@ void CoralFaceDetector::detect(const cv::Mat& /*img_gray*/, const cv::Mat& img_r
     std::memcpy(&data[0], &img_rgb_s.at<uint8_t>(0, 0), num_bytes);
     const auto& coral_dets = detector.detect(data);
     // Convert detections.
-    const float x_scale = static_cast<float>(img_rgb_s.cols);
-    const float y_scale = static_cast<float>(img_rgb_s.rows);
+    const float x_scale = static_cast<float>(img_rgb.cols);
+    const float y_scale = static_cast<float>(img_rgb.rows);
     face_detections.clear();
     for (const auto& cd : coral_dets) {
         const float width = cd.width() * x_scale;
         const float height = cd.height() * y_scale;
-        face_detections.emplace_back(cd.xmin * x_scale + (width / 2), cd.ymin * y_scale + (height / 2), width, height);
+        face_detections.emplace_back(cd.xmin * x_scale, cd.ymin * y_scale, width, height);
         //ROS_WARN_STREAM("Det: " << face_detections.back().x << ", " << face_detections.back().y << ": " << face_detections.back().width << ", " << face_detections.back().height);
     }
 }
