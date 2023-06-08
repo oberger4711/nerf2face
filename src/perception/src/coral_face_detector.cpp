@@ -4,8 +4,6 @@
 // ROS
 #include <ros/ros.h>
 
-constexpr int DOWN_SCALING_FACTOR = 2;
-
 CoralFaceDetector::CoralFaceDetector() :
     detector(ros::package::getPath("perception") + "/resources/ssd_mobilenet_v2_face_quant_postprocess_edgetpu.tflite", 0.7) {
 }

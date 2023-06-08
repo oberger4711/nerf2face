@@ -42,6 +42,8 @@ private:
 
     std::unique_ptr<FaceDetector> make_detector(const FaceDetectorImpl detector_impl);
     cv::Ptr<cv::Tracker> make_tracker();
+    boost::optional<cv::Rect> findFaceDetectThenTrack(const cv::Mat& img, const double timestamp);
+    boost::optional<cv::Rect> findFaceDetectOrTrack(const cv::Mat& img, const double timestamp);
     boost::optional<cv::Rect> trackFace(const cv::Mat& img_gray);
     boost::optional<cv::Rect> detectFace(const cv::Mat& img_gray, const cv::Mat& img_rgb);
     

@@ -36,6 +36,9 @@ class Aimer:
         self.previous_error = None
         self.previous_stamp = None
 
+    def get_actual_pan_and_tilt(self):
+        return self.actuator.get_actual_pan_and_tilt()
+
     def aim(self, target, stamp):
         if self.previous_stamp is not None:
             time_step = stamp - self.previous_stamp

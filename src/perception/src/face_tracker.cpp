@@ -1,5 +1,7 @@
 #include "face_tracker.h"
 
+#include <thread>
+
 FaceTracker::FaceTracker(const FaceDetectorImpl detector_impl, const FaceTrackerImpl tracker_impl) :
     tracker_impl(tracker_impl),
     current_state(FaceTrackerState::DETECT),
@@ -42,7 +44,9 @@ void FaceTracker::reset() {
     current_state = FaceTrackerState::DETECT;
 }
 
-boost::optional<cv::Rect> FaceTracker::findFace(const cv::Mat& img, const double timestamp) {
+boost::optional<cv::Rect> FaceTracker::findFaceDetectThenTrack(const cv::Mat& img, const double timestamp) {
+    // Run detector if no previous detection.
+    // If previously detected run faster tracker.
     // To grayscale.
     cv::Mat img_gray;
     cv::cvtColor(img, img_gray, CV_BGR2GRAY);
@@ -94,10 +98,64 @@ boost::optional<cv::Rect> FaceTracker::findFace(const cv::Mat& img, const double
                 current_state = FaceTrackerState::TRACK;
                 ROS_INFO("DETECT: Detected. -> TRACK");
             }
+            else {
+                ROS_INFO("DETECT: Detected.");
+            }
+        }
+        else if (ts_last_detection > 0.0) {
+            ROS_INFO("DETECT: Not detected anymore!");
         }
         return detected_face;
     }
     return boost::optional<cv::Rect>();
+}
+
+boost::optional<cv::Rect> FaceTracker::findFaceDetectOrTrack(const cv::Mat& img, const double timestamp) {
+    // Run detector and tracker (if previously detected) in parallel.
+    // The idea is that the detector runs on the external Coral hardware and the tracker on the Pi.
+    // If the tracker is fast enough, we can afterwards use the high quality detection if available or the lesser quality track as backup.
+    cv::Mat img_gray;
+    cv::cvtColor(img, img_gray, CV_BGR2GRAY);
+    boost::optional<cv::Rect> detected_face;
+    boost::optional<cv::Rect> tracked_face;
+    // Track in parallel if within timeout.
+    if (tracker && (timestamp - ts_last_detection > 1.0)) {
+        tracker.release();
+        ROS_INFO("Gave up track after timeout.");
+    }
+    if (tracker)
+    {
+        std::thread tracker_thread([this, &tracked_face, &img_gray]() { tracked_face = trackFace(img_gray); });
+        detected_face = detectFace(img_gray, img);
+        tracker_thread.join();
+    }
+    else {
+        detected_face = detectFace(img_gray, img);
+    }
+    if (detected_face) {
+        if (!tracker)
+        {
+            ROS_INFO("Detected again.");
+        }
+        else {
+            ROS_INFO("Detected.");
+        }
+        ts_last_detection = timestamp;
+        // Initialize tracking.
+        tracker = make_tracker();
+        tracker->init(img_gray, static_cast<cv::Rect2d>(detected_face.get()));
+        return detected_face;
+    }
+    else if (tracked_face) {
+        ROS_INFO("Tracked face.");
+        return tracked_face;
+    }
+    return boost::optional<cv::Rect>();
+}
+
+boost::optional<cv::Rect> FaceTracker::findFace(const cv::Mat& img, const double timestamp) {
+    //return findFaceDetectThenTrack(img, timestamp);
+    return findFaceDetectOrTrack(img, timestamp);
 }
 
 boost::optional<cv::Rect> FaceTracker::trackFace(const cv::Mat& img_gray) {
